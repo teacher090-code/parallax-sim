@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>중3 과학: 시차(Parallax) 3단계 탐구 시뮬레이션</title>
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #22c55e;
+      --danger: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    header h1 {
+      font-size: 1.8rem;
+      color: #6366f1;
+      margin-bottom: 8px;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    /* Step Navigation Tabs */
+    .tab-container {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      width: 100%;
+      max-width: 800px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 12px;
+      background: var(--card-bg);
+      border: 2px solid #334155;
+      color: var(--text-muted);
+      border-radius: 12px;
+      font-weight: bold;
+      font-size: 0.95rem;
+      cursor: not-allowed;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .tab-btn.unlocked {
+      cursor: pointer;
+      border-color: #6366f1;
+      color: var(--text);
+    }
+
+    .tab-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);
+    }
+
+    /* Main Content Area */
+    .content-box {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 24px;
+      width: 100%;
+      max-width: 800px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      display: none;
+    }
+
+    .content-box.active {
+      display: block;
+    }
+
+    .section-title {
+      font-size: 1.3rem;
+      margin-bottom: 15px;
+      color: #818cf8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Canvas Simulation Container */
+    .sim-canvas-container {
+      width: 100%;
+      height: 320px;
+      background: #020617;
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #334155;
+      margin-bottom: 20px;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
+      background: #0f172a;
+      padding: 15px;
+      border-radius: 10px;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-hover);
+    }
+
+    .slider-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .slider-group input {
+      flex: 1;
+    }
+
+    /* Quiz Area */
+    .quiz-box {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 15px;
+    }
+
+    .quiz-title {
+      font-weight: bold;
+      color: #38bdf8;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .quiz-question {
+      margin-bottom: 15px;
+      line-height: 1.5;
+      font-size: 1.05rem;
+    }
+
+    .quiz-input-group {
+      display: flex;
+      gap: 10px;
+    }
+
+    .quiz-input {
+      flex: 1;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #475569;
+      background: #1e293b;
+      color: white;
+      font-size: 1rem;
+    }
+
+    .quiz-input:focus {
+      outline: none;
+      border-color: #6366f1;
+    }
+
+    .feedback-msg {
+      margin-top: 12px;
+      font-weight: bold;
+      font-size: 0.95rem;
+      min-height: 24px;
+    }
+
+    .feedback-msg.success { color: var(--accent); }
+    .feedback-msg.error { color: var(--danger); }
+
+    /* Next Step Button */
+    .next-step-btn {
+      margin-top: 15px;
+      width: 100%;
+      padding: 14px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.05rem;
+      font-weight: bold;
+      cursor: pointer;
+      display: none;
+    }
+
+    .next-step-btn:hover {
+      background: #16a34a;
+    }
+
+    /* Modal / Success Effects */
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      background: #334155;
+      color: #94a3b8;
+    }
+    .badge.pass {
+      background: #166534;
+      color: #4ade80;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🌌 별과 우주: 시차(Parallax) 학습 시뮬레이션</h1>
+    <p>3단계를 거치며 시차의 원리를 스스로 이해하고 개념을 정복해보세요!</p>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <div class="tab-container">
+    <div class="tab-btn active" id="tab1" onclick="switchTab(1)">
+      <span>1단계: 관측자 시점</span>
+      <span class="badge" id="badge1">진행중</span>
+    </div>
+    <div class="tab-btn" id="tab2" onclick="switchTab(2)">
+      <span>2단계: 외부 전체 시점</span>
+      <span class="badge" id="badge2">잠김 🔒</span>
+    </div>
+    <div class="tab-btn" id="tab3" onclick="switchTab(3)">
+      <span>3단계: 거리에 따른 시차</span>
+      <span class="badge" id="badge3">잠김 🔒</span>
+    </div>
+  </div>
+
+  <!-- SECTION 1 -->
+  <div class="content-box active" id="content1">
+    <div class="section-title">
+      <span>1단계: 내 눈으로 보는 시차 (관측자 시점)</span>
+    </div>
+    <p style="margin-bottom: 15px; color: var(--text-muted);">
+      손가락을 눈앞에 두고 왼쪽 눈과 오른쪽 눈을 번갈아 감아보세요. 배경 산에 비해 가까운 별의 위치가 어떻게 보이나요?
+    </p>
+
+    <div class="sim-canvas-container">
+      <canvas id="canvas1"></canvas>
+    </div>
+
+    <div class="controls">
+      <button class="btn" onclick="setEye('left')">👁️ 왼눈으로 보기</button>
+      <button class="btn" onclick="setEye('right')">👁️ 오른눈으로 보기</button>
+    </div>
+
+    <div class="quiz-box">
+      <div class="quiz-title">🤖 AI 개념 확인 미션 1</div>
+      <div class="quiz-question">
+        관측자의 눈(위치)이 달라지면, 멀리 있는 배경보다 가까이 있는 물체(별)가 <b>어떻게</b> 움직이는 것처럼 보이나요? (비교하여 입력해 보세요)
+      </div>
+      <div class="quiz-input-group">
+        <input type="text" id="ans1" class="quiz-input" placeholder="예: 더 많이 움직인다 / 크게 움직인다">
+        <button class="btn" onclick="checkAnswer(1)">제출 및 AI 채점</button>
+      </div>
+      <div class="feedback-msg" id="feedback1"></div>
+      <button class="next-step-btn" id="next1" onclick="unlockAndGo(2)">🎉 정답입니다! 2단계로 이동하기 ➔</button>
+    </div>
+  </div>
+
+  <!-- SECTION 2 -->
+  <div class="content-box" id="content2">
+    <div class="section-title">
+      <span>2단계: 시차가 생기는 원인 (외부 전체 시점)</span>
+    </div>
+    <p style="margin-bottom: 15px; color: var(--text-muted);">
+      위에서 전체 우주를 바라봅시다. 지구가 위치 A에서 B로 이동할 때, 배경 천구에 찍히는 별의 위치가 왜 달라지는지 확인해 보세요.
+    </p>
+
+    <div class="sim-canvas-container">
+      <canvas id="canvas2"></canvas>
+    </div>
+
+    <div class="controls">
+      <button class="btn" onclick="toggleEarthPos()">🌍 관측자 위치 이동 (A ↔ B)</button>
+    </div>
+
+    <div class="quiz-box">
+      <div class="quiz-title">🤖 AI 개념 확인 미션 2</div>
+      <div class="quiz-question">
+        별은 실제로 움직이지 않았습니다. 별의 배경 위치가 바뀌어 보이는 <b>근본적인 원인</b>은 무엇 때문인가요?
+      </div>
+      <div class="quiz-input-group">
+        <input type="text" id="ans2" class="quiz-input" placeholder="예: 관측자(지구)의 위치가 변해서">
+        <button class="btn" onclick="checkAnswer(2)">제출 및 AI 채점</button>
+      </div>
+      <div class="feedback-msg" id="feedback2"></div>
+      <button class="next-step-btn" id="next2" onclick="unlockAndGo(3)">🎉 정답입니다! 3단계로 이동하기 ➔</button>
+    </div>
+  </div>
+
+  <!-- SECTION 3 -->
+  <div class="content-box" id="content3">
+    <div class="section-title">
+      <span>3단계: 물체의 거리와 시차의 관계</span>
+    </div>
+    <p style="margin-bottom: 15px; color: var(--text-muted);">
+      슬라이더를 조절하여 별을 가까이 끌어오거나 멀리 보내보세요. 관측 각도(시차)의 크기가 어떻게 달라지나요?
+    </p>
+
+    <div class="sim-canvas-container">
+      <canvas id="canvas3"></canvas>
+    </div>
+
+    <div class="controls">
+      <div class="slider-group">
+        <label for="starDist">별까지의 거리:</label>
+        <input type="range" id="starDist" min="100" max="260" value="120" oninput="drawStep3()">
+        <span id="distVal" style="font-weight: bold; color: #38bdf8;">가까움</span>
+      </div>
+    </div>
+
+    <div class="quiz-box">
+      <div class="quiz-title">🤖 AI 개념 확인 미션 3</div>
+      <div class="quiz-question">
+        물체(별)까지의 거리가 <b>가까울수록</b> 시차(두 시선이 이루는 각도)의 크기는 어떻게 되나요?
+      </div>
+      <div class="quiz-input-group">
+        <input type="text" id="ans3" class="quiz-input" placeholder="예: 더 커진다 / 증가한다">
+        <button class="btn" onclick="checkAnswer(3)">제출 및 AI 채점</button>
+      </div>
+      <div class="feedback-msg" id="feedback3"></div>
+      <div id="finalSuccess" style="display: none; margin-top: 15px; text-align: center; color: #4ade80; font-weight: bold; font-size: 1.2rem;">
+        🏆 축하합니다! 시차의 모든 원리를 완벽하게 마스터하셨습니다!
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State management
+    let currentStep = 1;
+    let unlockedSteps = [true, false, false];
+    let currentEye = 'left'; // 'left' or 'right'
+    let earthPos = 'A'; // 'A' or 'B'
+
+    // Canvas contexts
+    const c1 = document.getElementById('canvas1');
+    const ctx1 = c1.getContext('2d');
+    const c2 = document.getElementById('canvas2');
+    const ctx2 = c2.getContext('2d');
+    const c3 = document.getElementById('canvas3');
+    const ctx3 = c3.getContext('2d');
+
+    // Resize canvas for sharp rendering
+    function initCanvasSize() {
+      [c1, c2, c3].forEach(canvas => {
+        canvas.width = canvas.parentElement.clientWidth;
+        canvas.height = canvas.parentElement.clientHeight;
+      });
+      drawStep1();
+      drawStep2();
+      drawStep3();
+    }
+    window.addEventListener('resize', initCanvasSize);
+
+    // --- STEP 1: Observer Perspective ---
+    function setEye(eye) {
+      currentEye = eye;
+      drawStep1();
+    }
+
+    function drawStep1() {
+      const w = c1.width;
+      const h = c1.height;
+      ctx1.clearRect(0, 0, w, h);
+
+      // Background stars & mountains
+      ctx1.fillStyle = "#ffffff";
+      for(let i=0; i<30; i++) {
+        let x = (i * 37) % w;
+        let y = (i * 19) % (h * 0.5);
+        ctx1.fillRect(x, y, 2, 2);
+      }
+
+      // Background mountains
+      ctx1.fillStyle = "#1e293b";
+      ctx1.beginPath();
+      ctx1.moveTo(0, h);
+      ctx1.lineTo(w * 0.2, h * 0.5);
+      ctx1.lineTo(w * 0.5, h);
+      ctx1.lineTo(w * 0.8, h * 0.4);
+      ctx1.lineTo(w, h);
+      ctx1.fill();
+
+      // Near Target Star (Position shifts based on eye view)
+      // Left eye view -> Star appears on the Right side relative to background
+      // Right eye view -> Star appears on the Left side
+      let starX = (currentEye === 'left') ? w * 0.65 : w * 0.35;
+      let starY = h * 0.5;
+
+      // Line of Sight indicator
+      ctx1.strokeStyle = "rgba(234, 179, 8, 0.4)";
+      ctx1.setLineDash([5, 5]);
+      ctx1.beginPath();
+      ctx1.moveTo(w/2, h);
+      ctx1.lineTo(starX, starY);
+      ctx1.stroke();
+      ctx1.setLineDash([]);
+
+      // Draw Near Yellow Star
+      ctx1.fillStyle = "#facc15";
+      ctx1.shadowColor = "#facc15";
+      ctx1.shadowBlur = 15;
+      ctx1.beginPath();
+      ctx1.arc(starX, starY, 16, 0, Math.PI * 2);
+      ctx1.fill();
+      ctx1.shadowBlur = 0;
+
+      // Label
+      ctx1.fillStyle = "#ffffff";
+      ctx1.font = "bold 14px sans-serif";
+      ctx1.textAlign = "center";
+      ctx1.fillText("가까운 별", starX, starY - 25);
+      
+      ctx1.fillStyle = "#38bdf8";
+      ctx1.fillText(`현재 관측: [ ${currentEye === 'left' ? '왼쪽 눈' : '오른쪽 눈'} ]`, w/2, 30);
+    }
+
+    // --- STEP 2: Top-down View ---
+    function toggleEarthPos() {
+      earthPos = (earthPos === 'A') ? 'B' : 'A';
+      drawStep2();
+    }
+
+    function drawStep2() {
+      const w = c2.width;
+      const h = c2.height;
+      ctx2.clearRect(0, 0, w, h);
+
+      const starX = w / 2;
+      const starY = h * 0.45;
+
+      const posA = { x: w * 0.25, y: h * 0.85 };
+      const posB = { x: w * 0.75, y: h * 0.85 };
+
+      // Background Sky Wall (Top)
+      ctx2.strokeStyle = "#475569";
+      ctx2.lineWidth = 3;
+      ctx2.beginPath();
+      ctx2.moveTo(20, 40);
+      ctx2.lineTo(w - 20, 40);
+      ctx2.stroke();
+      
+      ctx2.fillStyle = "#94a3b8";
+      ctx2.font = "12px sans-serif";
+      ctx2.textAlign = "center";
+      ctx2.fillText("배경 천구 (멀리 있는 별들)", w/2, 25);
+
+      // Light Rays to Background Wall
+      // Ray from A through Star to Wall
+      let projAX = starX + (starX - posA.x) * (starY - 40) / (posA.y - starY);
+      ctx2.strokeStyle = (earthPos === 'A') ? "#22c55e" : "#334155";
+      ctx2.lineWidth = (earthPos === 'A') ? 2 : 1;
+      ctx2.beginPath();
+      ctx2.moveTo(posA.x, posA.y);
+      ctx2.lineTo(projAX, 40);
+      ctx2.stroke();
+
+      // Ray from B through Star to Wall
+      let projBX = starX - (posB.x - starX) * (starY - 40) / (posB.y - starY);
+      ctx2.strokeStyle = (earthPos === 'B') ? "#22c55e" : "#334155";
+      ctx2.lineWidth = (earthPos === 'B') ? 2 : 1;
+      ctx2.beginPath();
+      ctx2.moveTo(posB.x, posB.y);
+      ctx2.lineTo(projBX, 40);
+      ctx2.stroke();
+
+      // Projections on wall
+      ctx2.fillStyle = "#facc15";
+      ctx2.beginPath();
+      ctx2.arc(projAX, 40, 6, 0, Math.PI * 2);
+      ctx2.arc(projBX, 40, 6, 0, Math.PI * 2);
+      ctx2.fill();
+
+      ctx2.fillStyle = "#ffffff";
+      ctx2.font = "11px sans-serif";
+      ctx2.fillText("A에서 본 위치", projAX, 58);
+      ctx2.fillText("B에서 본 위치", projBX, 58);
+
+      // Target Star
+      ctx2.fillStyle = "#ef4444";
+      ctx2.shadowColor = "#ef4444";
+      ctx2.shadowBlur = 10;
+      ctx2.beginPath();
+      ctx2.arc(starX, starY, 12, 0, Math.PI * 2);
+      ctx2.fill();
+      ctx2.shadowBlur = 0;
+      
+      ctx2.fillStyle = "#ffffff";
+      ctx2.font = "bold 13px sans-serif";
+      ctx2.fillText("가까운 별", starX + 35, starY + 4);
+
+      // Earth Positions
+      drawEarth(ctx2, posA.x, posA.y, "관측지점 A", earthPos === 'A');
+      drawEarth(ctx2, posB.x, posB.y, "관측지점 B", earthPos === 'B');
+    }
+
+    function drawEarth(ctx, x, y, label, active) {
+      ctx.fillStyle = active ? "#38bdf8" : "#64748b";
+      ctx.beginPath();
+      ctx.arc(x, y, 14, 0, Math.PI * 2);
+      ctx.fill();
+      if(active) {
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "12px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(label, x, y + 28);
+    }
+
+    // --- STEP 3: Distance Dependency ---
+    function drawStep3() {
+      const w = c3.width;
+      const h = c3.height;
+      ctx3.clearRect(0, 0, w, h);
+
+      const distInput = parseInt(document.getElementById('starDist').value);
+      const labelText = document.getElementById('distVal');
+      
+      if(distInput < 150) labelText.innerText = "매우 가깝음";
+      else if(distInput < 210) labelText.innerText = "보통 거리";
+      else labelText.innerText = "멀음";
+
+      const posA = { x: w * 0.3, y: h * 0.85 };
+      const posB = { x: w * 0.7, y: h * 0.85 };
+      
+      // Star Y Position based on Slider (Lower Y = Closer to Earth)
+      const starX = w / 2;
+      const starY = posA.y - distInput;
+
+      // Lines of Sight
+      ctx3.strokeStyle = "#6366f1";
+      ctx3.lineWidth = 2;
+      ctx3.beginPath();
+      ctx3.moveTo(posA.x, posA.y);
+      ctx3.lineTo(starX, starY);
+      ctx3.lineTo(posB.x, posB.y);
+      ctx3.stroke();
+
+      // Draw Parallax Angle Arc
+      const angleA = Math.atan2(posA.y - starY, posA.x - starX);
+      const angleB = Math.atan2(posB.y - starY, posB.x - starX);
+      
+      ctx3.strokeStyle = "#f43f5e";
+      ctx3.lineWidth = 3;
+      ctx3.beginPath();
+      ctx3.arc(starX, starY, 35, angleA, angleB, false);
+      ctx3.stroke();
+
+      // Angle Label
+      ctx3.fillStyle = "#f43f5e";
+      ctx3.font = "bold 15px sans-serif";
+      ctx3.textAlign = "center";
+      ctx3.fillText("시차(각도)", starX, starY + 55);
+
+      // Star
+      ctx3.fillStyle = "#facc15";
+      ctx3.shadowColor = "#facc15";
+      ctx3.shadowBlur = 12;
+      ctx3.beginPath();
+      ctx3.arc(starX, starY, 12, 0, Math.PI * 2);
+      ctx3.fill();
+      ctx3.shadowBlur = 0;
+
+      // Earth Positions
+      drawEarth(ctx3, posA.x, posA.y, "관측위치 A", true);
+      drawEarth(ctx3, posB.x, posB.y, "관측위치 B", true);
+    }
+
+    // --- Tab Navigation ---
+    function switchTab(step) {
+      if(!unlockedSteps[step - 1]) return;
+
+      currentStep = step;
+      document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
+        btn.classList.toggle('active', idx === step - 1);
+      });
+      document.querySelectorAll('.content-box').forEach((box, idx) => {
+        box.classList.toggle('active', idx === step - 1);
+      });
+
+      setTimeout(initCanvasSize, 50);
+    }
+
+    function unlockAndGo(nextStep) {
+      unlockedSteps[nextStep - 1] = true;
+      
+      const tab = document.getElementById(`tab${nextStep}`);
+      const badge = document.getElementById(`badge${nextStep}`);
+      
+      tab.classList.add('unlocked');
+      badge.classList.add('pass');
+      badge.innerText = "진행 가능";
+
+      switchTab(nextStep);
+    }
+
+    // --- AI Concept Grading Logic (NLP Rule Engine) ---
+    function checkAnswer(step) {
+      const input = document.getElementById(`ans${step}`).value.trim().toLowerCase();
+      const feedback = document.getElementById(`feedback${step}`);
+      const nextBtn = document.getElementById(`next${step}`);
+
+      if(!input) {
+        feedback.className = "feedback-msg error";
+        feedback.innerText = "⚠️ 답안을 입력해 주세요!";
+        return;
+      }
+
+      let isCorrect = false;
+
+      if(step === 1) {
+        // Correct concepts: "더 많이", "많이", "크게", "더 크게"
+        const keywords = ["많이", "크게", "더"];
+        const wrongKeywords = ["적게", "작게", "안", "가만히"];
+        
+        const hasWrong = wrongKeywords.some(w => input.includes(w));
+        const hasRight = keywords.some(k => input.includes(k));
+
+        if(hasRight && !hasWrong) isCorrect = true;
+
+      } else if(step === 2) {
+        // Correct concepts: "관측자", "위치", "눈", "지구", "보는", "시선"
+        const keywords = ["관측", "위치", "눈", "지구", "보는", "시선", "장소", "거리"];
+        const wrongKeywords = ["별이", "밝기", "태양"];
+
+        const hasRight = keywords.some(k => input.includes(k));
+        if(hasRight) isCorrect = true;
+
+      } else if(step === 3) {
+        // Correct concepts: "커진다", "크다", "증가", "넓어진다"
+        const keywords = ["커", "크", "증가", "넓"];
+        const wrongKeywords = ["작", "줄어", "감소", "일정"];
+
+        const hasWrong = wrongKeywords.some(w => input.includes(w));
+        const hasRight = keywords.some(k => input.includes(k));
+
+        if(hasRight && !hasWrong) isCorrect = true;
+      }
+
+      if(isCorrect) {
+        feedback.className = "feedback-msg success";
+        feedback.innerText = "✨ AI 채점 결과: 정답입니다! 개념을 올바르게 이해하셨습니다.";
+        
+        if(step < 3) {
+          nextBtn.style.display = "block";
+        } else {
+          document.getElementById("finalSuccess").style.display = "block";
+          document.getElementById("badge3").classList.add("pass");
+          document.getElementById("badge3").innerText = "완료 🏆";
+        }
+      } else {
+        feedback.className = "feedback-msg error";
+        feedback.innerText = "❌ AI 채점 결과: 정답이 아닙니다. 다시 한번 고민해보세요!";
+      }
+    }
+
+    // Initialize
+    window.onload = () => {
+      initCanvasSize();
+    };
+  </script>
+</body>
+</html>
