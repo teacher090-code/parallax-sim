@@ -304,7 +304,7 @@
         관측자의 눈(위치)이 달라지면, 멀리 있는 배경보다 가까이 있는 물체(별)가 <b>어떻게</b> 움직이는 것처럼 보이나요? (비교하여 입력해 보세요)
       </div>
       <div class="quiz-input-group">
-        <input type="text" id="ans1" class="quiz-input" placeholder="예: 더 많이 움직인다 / 크게 움직인다">
+        <input type="text" id="ans1" class="quiz-input" placeholder="예: 더 많이 움직인다 / 좌우로 움직인다">
         <button class="btn" onclick="checkAnswer(1)">제출 및 AI 채점</button>
       </div>
       <div class="feedback-msg" id="feedback1"></div>
@@ -667,18 +667,18 @@
       let isCorrect = false;
 
       if(step === 1) {
-        // Correct concepts: "더 많이", "많이", "크게", "더 크게"
-       const keywords = ["많이", "크게", "더", "좌우", "양옆", "옆으로", "왔다갔다", "위치가 변"];
-  const wrongKeywords = ["적게", "작게", "안", "가만히", "전혀"];
-  
-  const hasWrong = wrongKeywords.some(w => input.includes(w));
-  const hasRight = keywords.some(k => input.includes(k));
+        // 정답 인정 키워드: 좌우, 양옆, 이동, 움직, 많이, 크게, 위치 등 포함시 정답 처리
+        const keywords = ["좌우", "양옆", "움직", "이동", "많이", "크게", "더", "옆으로", "왔다갔다", "변", "다르"];
+        const wrongKeywords = ["적게", "작게", "안", "가만히", "전혀"];
+        
+        const hasWrong = wrongKeywords.some(w => input.includes(w));
+        const hasRight = keywords.some(k => input.includes(k));
 
-  if(hasRight && !hasWrong) isCorrect = true;
+        if(hasRight && !hasWrong) isCorrect = true;
 
       } else if(step === 2) {
         // Correct concepts: "관측자", "위치", "눈", "지구", "보는", "시선"
-        const keywords = ["관측", "위치", "눈", "지구", "보는", "시선", "장소", "거리"];
+        const keywords = ["관측", "위치", "눈", "지구", "보는", "시선", "장소", "거리", "이동"];
         const wrongKeywords = ["별이", "밝기", "태양"];
 
         const hasRight = keywords.some(k => input.includes(k));
