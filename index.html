@@ -595,14 +595,16 @@
       ctx3.stroke();
 
       // Draw Parallax Angle Arc
-      const angleA = Math.atan2(posA.y - starY, posA.x - starX);
-      const angleB = Math.atan2(posB.y - starY, posB.x - starX);
-      
-      ctx3.strokeStyle = "#f43f5e";
-      ctx3.lineWidth = 3;
-      ctx3.beginPath();
-      ctx3.arc(starX, starY, 35, angleA, angleB, false);
-      ctx3.stroke();
+     // 두 관측지점(A, B) 방향의 시선 각도 정확히 계산
+const angleA = Math.atan2(posA.y - starY, posA.x - starX);
+const angleB = Math.atan2(posB.y - starY, posB.x - starX);
+
+// 별 아래쪽의 내부 사이각을 감싸도록 counterclockwise(true) 설정
+ctx3.strokeStyle = "#f43f5e";
+ctx3.lineWidth = 3;
+ctx3.beginPath();
+ctx3.arc(starX, starY, 35, angleB, angleA, true); // angleB -> angleA 방향으로 내각을 그림
+ctx3.stroke();
 
       // Angle Label
       ctx3.fillStyle = "#f43f5e";
