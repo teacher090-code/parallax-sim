@@ -668,13 +668,13 @@
 
       if(step === 1) {
         // Correct concepts: "더 많이", "많이", "크게", "더 크게"
-        const keywords = ["많이", "크게", "더"];
-        const wrongKeywords = ["적게", "작게", "안", "가만히"];
-        
-        const hasWrong = wrongKeywords.some(w => input.includes(w));
-        const hasRight = keywords.some(k => input.includes(k));
+       const keywords = ["많이", "크게", "더", "좌우", "양옆", "옆으로", "왔다갔다", "위치가 변"];
+  const wrongKeywords = ["적게", "작게", "안", "가만히", "전혀"];
+  
+  const hasWrong = wrongKeywords.some(w => input.includes(w));
+  const hasRight = keywords.some(k => input.includes(k));
 
-        if(hasRight && !hasWrong) isCorrect = true;
+  if(hasRight && !hasWrong) isCorrect = true;
 
       } else if(step === 2) {
         // Correct concepts: "관측자", "위치", "눈", "지구", "보는", "시선"
